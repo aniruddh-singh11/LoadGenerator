@@ -14,10 +14,17 @@ app.post('/test/start', (req, res) => {
     if(state.running){
         return res.status(409).json({ error: 'Test already running' });
     }
-    startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps});
-    return res.status(200).json({ message: 'Test started' });
+    try{
+        startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps});
+        return res.status(200).json({ message: 'Test started' });
+    }catch(error){
+        return res.status(500).json({ error: error.message });
+    }
 })
 app.post('/test/stop', (req, res) => {
+    if(!state.running){
+        return res.status(409).json({ error: 'Test not running' });
+    }
     stopTest();
     return res.status(200).json({ message: 'Test stopped' });
 })
