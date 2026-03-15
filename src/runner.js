@@ -4,7 +4,14 @@ const { scheduleNext } = require('./loadgen');
 const { getPercentiles, latencies } = require('./metrics');
 const state = require('./state');
 
+function resetState(){
+    state.completed = 0;
+    state.tokenBucket = null;
+    latencies.length = 0;
+}
+
 function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps}) {
+    resetState();
     state.running = true;
     const tokenBucket = new TokenBucket(initialRps);
     state.tokenBucket = tokenBucket;
