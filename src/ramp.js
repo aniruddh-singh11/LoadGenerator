@@ -1,4 +1,4 @@
-const { getPercentiles } = require('./metrics');
+const { latencies } = require('./metrics');
 
 function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
   let lastRampP50 = null;
@@ -9,6 +9,9 @@ function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
     if(saturated){
         return;
     }
+    if(latencies.length === 0){
+        return;
+    }
     const { p50 } = getPercentiles();
 
     
@@ -17,9 +20,6 @@ function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
         tokenBucket.ratePerSecond += rampStep
         console.log(`ramping up to ${tokenBucket.ratePerSecond} RPS`)
         return
-    }
-    if(lastRampP50 !== null){
-        console.log(`p50: ${p50.toFixed(2)} lastRampP50: ${lastRampP50.toFixed(2)} diff: ${(p50 - lastRampP50).toFixed(2)} threshold: ${(lastRampP50).toFixed(2)}`)
     }
     if (tokenBucket.ratePerSecond >= maxRps) {
         console.log(`Reached MAX_RPS: ${maxRps}`)
