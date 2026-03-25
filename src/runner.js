@@ -7,6 +7,7 @@ const state = require('./state');
 function resetState(){
     state.completed = 0;
     state.tokenBucket = null;
+    state.errors = 0;
     latencies.length = 0;
 }
 
@@ -28,7 +29,7 @@ function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxR
             const { p50, p95, p99 } = getPercentiles()
             const elapsed =Math.floor((Date.now() - startTime) / 1000);
         
-            console.log(`[${elapsed}s] completed: ${state.completed} | p50: ${p50.toFixed(2)}ms | p95: ${p95.toFixed(2)}ms | p99: ${p99.toFixed(2)}ms`)
+            console.log(`[${elapsed}s] completed: ${state.completed} | errors: ${state.errors} | p50: ${p50.toFixed(2)}ms | p95: ${p95.toFixed(2)}ms | p99: ${p99.toFixed(2)}ms`)
         }
     }, 1000)
 

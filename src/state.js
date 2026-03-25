@@ -1,6 +1,7 @@
 const state = {
     completed: 0,
-    running: false
+    running: false,
+    errors: 0,
 }
 
 module.exports = state;

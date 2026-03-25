@@ -1,4 +1,5 @@
 const { latencies } = require('./metrics');
+const state = require('./state');
 
 function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
   let lastRampP50 = null;
@@ -12,6 +13,18 @@ function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
     if(latencies.length === 0){
         return;
     }
+
+    const errorRate = state.errors / state.completed;
+    if(errorRate > 0.1){
+        console.log(`Error rate: ${errorRate}`)
+        saturated = true;
+        tokenBucket.ratePerSecond = tokenBucket.ratePerSecond - rampStep;
+        console.log(`ramping down to ${tokenBucket.ratePerSecond} RPS`)
+        console.log(`High error rate detected: ${(errorRate * 100).toFixed(1)}% — stopping ramp`)
+        return;
+    }
+
+
     const { p50 } = getPercentiles();
 
     
