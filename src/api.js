@@ -36,9 +36,13 @@ app.get('/test/status', (req, res) => {
     return res.status(200).json({ 
         p50, p95, p99,
         completed: state.completed,
+        errorRate: state.completed > 0 ? ((state.errors / state.completed) * 100).toFixed(1) + '%' : '0%',
         running: state.running,
         tokenBucket: state.tokenBucket ? state.tokenBucket.ratePerSecond : 0
     });
+})
+app.get('/health', (req, res) => {
+    return res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 })
 
 module.exports = app;

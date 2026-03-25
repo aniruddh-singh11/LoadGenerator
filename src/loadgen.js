@@ -12,8 +12,9 @@ function scheduleNext(tokenBucket, TargetUrl) {
   }
 
 function sendRequest(tokenBucket, TargetUrl){
+    let timedOut = false;
     const start = process.hrtime.bigint();
-    http.get(TargetUrl, (res) => {
+    const req = http.get(TargetUrl, (res) => {
         res.resume();
         if(res.statusCode >= 400){
           state.errors++;
@@ -25,9 +26,20 @@ function sendRequest(tokenBucket, TargetUrl){
         state.completed++;
         scheduleNext(tokenBucket, TargetUrl);
     }).on('error', () => {
-        scheduleNext(tokenBucket, TargetUrl);
+        if(!timedOut){
+          state.errors++;
+          state.completed++;
+          scheduleNext(tokenBucket, TargetUrl);
+        }
     })
 
+    req.setTimeout(5000, () => {
+      timedOut = true;
+      req.destroy();
+      state.errors++;
+      state.completed++;
+      scheduleNext(tokenBucket, TargetUrl);
+    })
 }
 
 module.exports = {
