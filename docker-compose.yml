@@ -1,0 +1,22 @@
+services:
+  target-server:
+    build: ./target
+    ports:
+      - "3000:3000"
+  
+  load-generator:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - target-server
+  
+  chaos:
+    build: ./chaos
+    environment:
+      - TARGET_URL=http://target-server:3000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - target-server
+    
