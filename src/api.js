@@ -1,12 +1,14 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
+app.use(cors());
+
 const state = require('./state');
 const { startTest, stopTest } = require('./runner');
 const { getPercentiles, latencies } = require('./metrics');
 const { getTestResults } = require('./db');
 
 app.use(express.json());
-
 app.post('/test/start', (req, res) => {
     const { targetUrl, initialRps, concurrency, duration, rampStep, maxRps } = req.body;
     if(!targetUrl || !initialRps || !concurrency || !duration || !rampStep || !maxRps) {
@@ -39,7 +41,7 @@ app.get('/test/status', (req, res) => {
         completed: state.completed,
         errorRate: state.completed > 0 ? ((state.errors / state.completed) * 100).toFixed(1) + '%' : '0%',
         running: state.running,
-        tokenBucket: state.tokenBucket ? state.tokenBucket.ratePerSecond : 0
+        rps: state.tokenBucket ? state.tokenBucket.ratePerSecond : 0
     });
 })
 app.get('/health', (req, res) => {
