@@ -19,6 +19,8 @@ function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
         console.log(`Error rate: ${errorRate}`)
         saturated = true;
         tokenBucket.ratePerSecond = tokenBucket.ratePerSecond - rampStep;
+        state.maxSustainableRps = tokenBucket.ratePerSecond;
+        state.saturationDetected = true;
         console.log(`ramping down to ${tokenBucket.ratePerSecond} RPS`)
         console.log(`High error rate detected: ${(errorRate * 100).toFixed(1)}% — stopping ramp`)
         return;
@@ -46,9 +48,11 @@ function startRamp(tokenBucket, getPercentiles, {rampStep, maxRps}) {
     }else{
         if(printSaturation){
             printSaturation = false;
+            tokenBucket.ratePerSecond -= rampStep;
+            state.maxSustainableRps = tokenBucket.ratePerSecond;
+            state.saturationDetected = true;
             console.log(`Saturation detected at ${tokenBucket.ratePerSecond} RPS`)
             console.log(`Max Sustainable RPS: ${tokenBucket.ratePerSecond - rampStep} RPS`)
-            tokenBucket.ratePerSecond -= rampStep;
             console.log(`ramping down to ${tokenBucket.ratePerSecond} RPS`)
             saturated = true;
         }

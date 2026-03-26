@@ -2,6 +2,7 @@ const TokenBucket = require('./tokenBucket');
 const { startRamp } = require('./ramp');
 const { scheduleNext } = require('./loadgen');
 const { getPercentiles, latencies } = require('./metrics');
+const { saveTestResult } = require('./db');
 const state = require('./state');
 
 function resetState(){
@@ -9,10 +10,13 @@ function resetState(){
     state.tokenBucket = null;
     state.errors = 0;
     latencies.length = 0;
+    state.maxSustainableRps = null;
+    state.saturationDetected = false;
 }
 
 function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps}) {
     resetState();
+    const startedAt = new Date();
     state.running = true;
     const tokenBucket = new TokenBucket(initialRps);
     state.tokenBucket = tokenBucket;
@@ -46,6 +50,18 @@ function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxR
         console.log(`p50: ${p50.toFixed(2)}ms`)
         console.log(`p95: ${p95.toFixed(2)}ms`)
         console.log(`p99: ${p99.toFixed(2)}ms`)
+        saveTestResult({
+            startedAt,
+            completedAt: new Date(),
+            targetUrl,
+            initialRps,
+            maxRps,
+            rampStep,
+            concurrency,
+            duration,
+            p50, p95, p99, completedRequests: state.completed, errorRate: state.errors / state.completed, maxSustainableRps: state.maxSustainableRps, saturationDetected: state.saturationDetected
+        })
+
     }
 
     state.cleanUp = cleanUp;

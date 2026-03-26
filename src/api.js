@@ -3,6 +3,7 @@ const app = express();
 const state = require('./state');
 const { startTest, stopTest } = require('./runner');
 const { getPercentiles, latencies } = require('./metrics');
+const { getTestResults } = require('./db');
 
 app.use(express.json());
 
@@ -43,6 +44,14 @@ app.get('/test/status', (req, res) => {
 })
 app.get('/health', (req, res) => {
     return res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+})
+app.get('/test/results', async (req, res) => {
+    try {
+        const results = await getTestResults()
+        return res.status(200).json(results)
+    } catch(err) {
+        return res.status(500).json({ error: err.message })
+    }
 })
 
 module.exports = app;
