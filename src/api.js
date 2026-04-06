@@ -9,7 +9,7 @@ const { getPercentiles, latencies } = require('./metrics');
 const { getTestResults } = require('./db');
 
 app.use(express.json());
-app.post('/test/start', (req, res) => {
+app.post('/test/start', async (req, res) => {
     const { targetUrl, initialRps, concurrency, duration, rampStep, maxRps } = req.body;
     if(!targetUrl || !initialRps || !concurrency || !duration || !rampStep || !maxRps) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -18,7 +18,7 @@ app.post('/test/start', (req, res) => {
         return res.status(409).json({ error: 'Test already running' });
     }
     try{
-        startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps});
+        await startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps});
         return res.status(200).json({ message: 'Test started' });
     }catch(error){
         return res.status(500).json({ error: error.message });

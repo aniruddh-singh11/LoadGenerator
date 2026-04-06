@@ -1,8 +1,13 @@
-const TARGET_URL = process.env.TARGET_URL || 'http://target-server:3000'
+let TARGET_URL = process.env.TARGET_URL || 'http://target-server:3000'
 
 const chaosRules = {
     "latency": null,
     "errors": null
+}
+
+function setUrl(url){
+    const parsedUrl = new URL(url);
+    TARGET_URL = `${parsedUrl.protocol}//${parsedUrl.host}`
 }
 
 function setLatency(delay, percentage){
@@ -32,6 +37,7 @@ function sleep(ms){
 }
 
 async function handleProxy(req, res){
+    //console.log(`Forwarding to: ${TARGET_URL}${req.url}`)
     if(chaosRules.errors && Math.random() < chaosRules.errors.percentage){
         res.status(500).send('Internal Server Error')
         return
@@ -55,5 +61,5 @@ module.exports = {
     setErrors,
     clearRules,
     getRules,
-    handleProxy
+    handleProxy, setUrl
 }

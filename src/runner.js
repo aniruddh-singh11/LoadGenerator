@@ -13,8 +13,11 @@ function resetState(){
     state.maxSustainableRps = null;
     state.saturationDetected = false;
 }
+const CHAOS_PROXY_URL = process.env.CHAOS_PROXY_URL || 'http://chaos:4000'
 
-function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps}) {
+
+
+async function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxRps}) {
     resetState();
     const startedAt = new Date();
     state.running = true;
@@ -22,10 +25,23 @@ function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxR
     state.tokenBucket = tokenBucket;
     const startTime = Date.now();
 
+    await fetch(`${CHAOS_PROXY_URL}/target`, {
+        method: 'POST',
+        body: JSON.stringify({ url: targetUrl }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(res => console.log(`Target set response: ${res.status}`))
+      .catch(err => console.log(`Target set failed: ${err.message}`))
+  
+
     const rampInterval = startRamp(tokenBucket, getPercentiles, {rampStep, maxRps});
 
+    const proxiedUrl = `${CHAOS_PROXY_URL}${new URL(targetUrl).pathname}`
+    console.log(`Proxied URL: ${proxiedUrl}`)
+
     for(let i = 0; i < concurrency; i++){
-        scheduleNext(tokenBucket, targetUrl); 
+        scheduleNext(tokenBucket, proxiedUrl); 
     }
 
     const metricsInterval = setInterval(() =>{
@@ -45,6 +61,10 @@ function startTest({targetUrl, initialRps, concurrency, duration, rampStep, maxR
         printResults();
     }
     function printResults(){
+        if(latencies.length === 0){
+            console.log('No successful requests to report')
+            return
+        }
         const { p50, p95, p99 } = getPercentiles()
         console.log(`\nCompleted: ${state.completed} requests`)
         console.log(`p50: ${p50.toFixed(2)}ms`)

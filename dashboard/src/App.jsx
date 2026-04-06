@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import TestForm from './components/TestForm'
 import LiveMetrics from './components/LiveMetrics'
 import ResultsTable from './components/ResultsTable'
+import ChaosControls from './components/ChaosControls'
 //import './App.css'
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
     <div className="app">
       <h1>Load Generator Dashboard</h1>
       <TestForm config={config} onConfigChange={handleConfigChange} onStart={startTest} onStop={stopTest} isRunning={isRunning} />
+      <ChaosControls />
       <LiveMetrics metrics={metrics} />
       <ResultsTable results={results} />
     </div>
